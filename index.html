@@ -416,8 +416,8 @@
                 y2 += offset;
             }
 
-            const drawArrowHead = (x, y, angle, color) => {
-                const headlen = 12;
+            const drawArrowHead = (x, y, angle, color, customHeadLen = 12) => {
+                const headlen = customHeadLen;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineTo(x - headlen * Math.cos(angle - Math.PI / 6), y - headlen * Math.sin(angle - Math.PI / 6));
@@ -630,7 +630,10 @@
                     const endY = fy + (dir === 'up' ? -len : len);
                     ctx.lineTo(fx, endY);
                     ctx.stroke();
-                    drawArrowHead(fx, endY, dir === 'up' ? -Math.PI/2 : Math.PI/2, color);
+                    
+                    // Escala dinámica de la cabeza de la flecha para que no desentone en fuerzas muy pequeñas
+                    const safeHeadLen = Math.min(12, len * 0.7);
+                    drawArrowHead(fx, endY, dir === 'up' ? -Math.PI/2 : Math.PI/2, color, safeHeadLen);
                     
                     // Etiqueta a la altura de la cabeza de la flecha
                     const labelY = endY;
@@ -638,12 +641,15 @@
                     drawPhysicsLabel(baseLabel, subLabel, fx + offsetTextX, labelY, color, align, true);
                 };
 
-                const tLen = 60;
+                // Proporcionalidad estricta (1 píxel por cada Newton)
+                const forceScale = 1.0; 
+                const tLen = T * forceScale;
+                const p1Len = P1 * forceScale;
+                const p2Len = P2 * forceScale;
+
                 drawForce(xc - R, y1, tLen, 'up', '#f59e0b', 'T', '', -20);
                 drawForce(xc + R, y2, tLen, 'up', '#f59e0b', 'T', '', 20);
 
-                const p1Len = Math.max(50, m1 * 6);
-                const p2Len = Math.max(50, m2 * 6);
                 drawForce(xc - R, y1, p1Len, 'down', '#059669', 'W', '1', -20);
                 drawForce(xc + R, y2, p2Len, 'down', '#059669', 'W', '2', 20);
             }
